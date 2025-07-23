@@ -1,25 +1,31 @@
 package com.coursefinder.PSUCourseFinder.Repositories;
 
 import com.coursefinder.PSUCourseFinder.Models.Course;
-import org.hibernate.query.Page;
+import com.pgvector.Vector;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.awt.print.Pageable;
 import java.util.List;
-import java.util.Vector;
 
 public interface CourseRepository extends JpaRepository<Course, String> {
 
-    // Spring Data will handle basic CRUD & pagination.
-    // You can add:
-    Page<Course> findByCourseCodeStartingWith(String dept, Pageable page);
+    /**
+     * Find courses whose courseCode starts with the given department prefix.
+     */
+    Page<Course> findByCourseCodeStartingWith(String dept, Pageable pageable);
 
-    // If you want keyword filtering:
-    @Query("SELECT c FROM Course c JOIN c.topKeywords k WHERE k = :kw")
-    Page<Course> findByKeyword(@Param("kw") String keyword, Pageable page);
+    /**
+     * Find courses that have the given keyword in their topKeywords list.
+     */
+    @Query("SELECT c FROM Course c JOIN c.topKeywords k WHERE k = :keyword")
+    Page<Course> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
-    // Vector search (via pgvector-starter):
-    List<Course> findTopByEmbeddingNearest(Vector queryEmbedding, Pageable page);
+    /**
+     * Perform a vector similarity search on the embedding column.
+     * Requires pgvector-spring-boot-starter.
+     */
+    List<Course> findTopByEmbeddingNearest(Vector embedding, Pageable pageable);
 }
